@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moments – PoC</title>
+<link rel="stylesheet" href="styles.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section id="loginView" class="login hidden">
+  <h1>Moments</h1>
+  <p class="sub">Log in with a demo account (lotte, jonas, or advisor sofie).</p>
+  <form id="loginForm" autocomplete="on">
+    <input id="username" name="username" placeholder="Username" autocomplete="username" required maxlength="64">
+    <input id="password" name="password" type="password" placeholder="Password" autocomplete="current-password" required maxlength="256">
+    <button class="btn" type="submit">Log in</button>
+    <div class="err" id="loginErr"></div>
+  </form>
+</section>
+
+<!-- CUSTOMER APP -->
+<div id="appView" class="hidden">
+<header>
+  <div class="topbar"><h1>Moments</h1><div class="who"><span id="whoName"></span><button class="btn ghost sm" id="logoutBtn">Log out</button></div></div>
+  <p class="sub">Proof of concept: the bank recognises life moments and responds at the right time, through the right channel, with an explanation. All data is fictional.</p>
+</header>
+<nav>
+  <button class="on" data-tab="klant">Customer view</button>
+  <button data-tab="schaal">Scale dashboard</button>
+  <button data-tab="hoe">How it works</button>
+</nav>
+<main>
+  <section class="tab on" id="klant">
+    <div class="panel">
+      <div class="persona">
+        <div><h2 class="m0">Fictional customer</h2><div class="fw6" id="custName"></div></div>
+        <div class="age" id="ageLbl"></div>
+      </div>
+      <div class="tl-wrap"><div class="tl" id="tl"><input type="range" id="age" min="22" max="67" step="1" value="22" aria-label="Age"></div></div>
+    </div>
+    <div class="grid">
+      <div>
+        <div class="panel"><h2>1 · Signals</h2><div id="signals"></div></div>
+        <div class="panel mt14"><h2>Customer consent</h2><div id="consent"></div>
+          <p class="w hint2">Switch off a source and watch the engine become more cautious.</p></div>
+      </div>
+      <div class="panel"><h2>2 · Engine</h2><div id="engine"></div></div>
+      <div><h2 class="center">3 · What the customer sees</h2><div class="phone"><div class="screen" id="screen"></div></div><p class="hint">Tap the Kate Coins bar to open the recommendations</p></div>
+    </div>
+  </section>
+
+  <section class="tab" id="schaal">
+    <div class="kpis" id="kpis"></div>
+    <div class="two">
+      <div class="panel"><h2>Moments detected this week</h2><div id="perMoment"></div>
+        <p class="w">Green = sensitive moment: no selling, only support and an advisor on request.</p></div>
+      <div class="panel funnel"><h2>From signal to action</h2><div id="funnel"></div>
+        <p class="w">Cheap rules and models filter first. The language model only writes the message for the customers that remain.</p></div>
+    </div>
+    <div class="panel mt14"><h2>Channel mix</h2><div id="channels"></div></div>
+  </section>
+
+  <section class="tab" id="hoe">
+    <div class="flow">
+      <div class="step"><span class="n">1</span><b>Signals</b><p>Transactions, in-app behaviour, customer data and products, only within the customer's consent.</p></div>
+      <div class="step"><span class="n">2</span><b>Moment detection</b><p>Runs on the server: lightweight rules per moment produce a confidence score, across millions of customers.</p></div>
+      <div class="step"><span class="n">3</span><b>Decision</b><p>≥ 45%: first ask the customer whether it's right, act only after "Yes". &lt; 45%: do nothing. Sensitive moments: never sell. When things get worse (job loss, divorce), KBC only asks an open question: "Has something changed in your life?".</p></div>
+      <div class="step"><span class="n">4</span><b>Channel &amp; timing</b><p>In-app message, push notification or an advisor, depending on the moment and the customer's preference.</p></div>
+      <div class="step"><span class="n">5</span><b>Personalisation</b><p>A language model can write the message, always with "Why am I seeing this?".</p></div>
+    </div>
+    <div class="panel mt14">
+      <h2>Why this scales</h2>
+      <p class="m0">The expensive work (a language model) only happens for the small group of customers where a moment was detected with confidence. Detection itself is cheap and runs in batch or streaming across all customers. Adding a new moment = one new detection rule + one action template, not a new product.</p>
+    </div>
+  </section>
+</main>
+</div>
+
+<!-- ADVISOR APP -->
+<div id="advisorView" class="hidden">
+<header>
+  <div class="topbar"><h1>Moments · Advisor</h1><div class="who"><span id="advName"></span><button class="btn ghost sm" id="advLogout">Log out</button></div></div>
+  <p class="sub">You only see appointments of customers assigned to you.</p>
+</header>
+<main><div class="panel"><h2>Booked appointments</h2><div id="appts"></div></div></main>
+</div>
+
+<footer>Hackathon prototype · fictional customers and synthetic figures.</footer>
+</body>
+</html>

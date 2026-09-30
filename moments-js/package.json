@@ -1,0 +1,16 @@
+{
+  "name": "moments",
+  "version": "1.0.0",
+  "description": "Life-moment engine for KBC (Tectonic Hackathon)",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test test/security.test.js"
+  },
+  "dependencies": {
+    "express": "5.2.1"
+  }
+}
