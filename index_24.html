@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moments – PoC</title>
+<style>
+:root{
+  --bg:#f4f6fa; --panel:#ffffff; --ink:#14203a; --muted:#5d6b85; --line:#dde3ee;
+  --accent:#0a6bd8; --accent-soft:#e3efff; --ok:#16875a; --ok-soft:#e1f5ec;
+  --warn:#b86e00; --warn-soft:#fff2dc; --stop:#b3261e; --stop-soft:#fde7e5;
+  --phone:#0d1526; --screen:#f7f9fc; --card:#ffffff;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1420; --panel:#161e2e; --ink:#e7ecf5; --muted:#9aa7bf; --line:#27324a;
+    --accent:#5aa2ff; --accent-soft:#1a2b47; --ok:#4cc790; --ok-soft:#15302a;
+    --warn:#f0b04d; --warn-soft:#352914; --stop:#ff7b70; --stop-soft:#3a1c1b;
+    --phone:#05080f; --screen:#1b2436; --card:#232e44;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:20px 16px 0;max-width:1200px;margin:0 auto}
+h1{margin:0;font-size:24px;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:4px 0 16px}
+nav{display:flex;gap:6px;border-bottom:1px solid var(--line);max-width:1200px;margin:0 auto;padding:0 16px;overflow-x:auto}
+nav button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 12px;font:inherit;color:var(--muted);cursor:pointer;white-space:nowrap}
+nav button.on{color:var(--ink);border-color:var(--accent);font-weight:600}
+main{max-width:1200px;margin:0 auto;padding:16px}
+.tab{display:none}.tab.on{display:block}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 10px}
+.persona{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.age{font-size:28px;font-weight:700}
+.age small{font-size:14px;font-weight:400;color:var(--muted)}
+/* timeline */
+.tl{position:relative;padding:34px 0 8px}
+.tl input{width:100%;accent-color:var(--accent)}
+.mk{position:absolute;top:0;transform:translateX(-50%);background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:2px 8px;font-size:12px;cursor:pointer;white-space:nowrap}
+.mk.on{background:var(--accent);color:#fff}
+.mk.alt{top:auto;bottom:-22px}
+@media (max-width:600px){.mk .lbl{display:none}}
+.tl-wrap{padding:0 40px 26px}
+.grid>*{min-width:0}
+.grid{display:grid;grid-template-columns:1fr 1fr 320px;gap:14px;margin-top:14px}
+@media (max-width:980px){.grid{grid-template-columns:1fr}.tl-wrap{padding:0 10px 26px}.mk{font-size:10px;padding:1px 5px}}
+.sig{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.sig:last-child{border:0}
+.sig.off{opacity:.45;text-decoration:line-through}
+.tag{font-size:11px;border-radius:6px;padding:1px 6px;background:var(--accent-soft);color:var(--accent);white-space:nowrap;align-self:flex-start}
+.w{color:var(--muted);font-size:12px;white-space:nowrap}
+.empty{color:var(--muted);font-style:italic}
+.toggle{display:flex;justify-content:space-between;align-items:center;padding:6px 0}
+.toggle input{width:18px;height:18px;accent-color:var(--accent)}
+.bar{position:relative;height:14px;border-radius:7px;background:var(--line);margin:8px 0 22px}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:7px;background:var(--accent);transition:width .3s}
+.bar .th{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+.bar .th span{position:absolute;top:20px;left:-14px;font-size:11px;color:var(--muted)}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-weight:600;font-size:13px}
+.p-act{background:var(--ok-soft);color:var(--ok)} .p-ask{background:var(--warn-soft);color:var(--warn)}
+.p-none{background:var(--line);color:var(--muted)} .p-stop{background:var(--stop-soft);color:var(--stop)}
+dl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:12px 0 0}
+dt{color:var(--muted)} dd{margin:0}
+.note{margin-top:12px;padding:10px;border-radius:10px;background:var(--accent-soft);font-size:13px}
+/* phone */
+.phone{background:var(--phone);border-radius:34px;padding:12px;max-width:300px;margin:0 auto}
+.screen{background:var(--screen);border-radius:24px;height:580px;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin}
+.screen>*{flex-shrink:0}
+/* partnerbalk */
+.reco{position:sticky;top:-16px;z-index:5;margin:0 -4px;background:linear-gradient(135deg,var(--accent),#6a4fd8);color:#fff;border-radius:14px;padding:8px 10px;box-shadow:0 4px 14px rgba(10,40,90,.25);transition:padding .3s}
+.reco-top{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.reco-top .cnt{background:rgba(255,255,255,.25);border-radius:999px;padding:0 7px;font-size:11px}
+.reco-top .grow{flex:1;cursor:pointer}
+.reco .x{background:rgba(255,255,255,.2);border:0;color:#fff;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:14px;line-height:1}
+.reco-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.reco.l1 .reco-body{max-height:60px}.reco.l2 .reco-body{max-height:360px;overflow-y:auto}
+.reco.l2{padding:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chips span{background:rgba(255,255,255,.2);border-radius:999px;padding:2px 8px;font-size:11px}
+.reco.l2 .chips{display:none}
+.reco.l1 .why{display:none}
+.offers{display:none;flex-direction:column;gap:6px;margin-top:10px}
+.reco.l2 .offers{display:flex}
+.offer{background:rgba(255,255,255,.14);border-radius:10px;padding:8px}
+.offer b{display:block;font-size:13px}.offer small{display:block;font-size:11px;opacity:.85;margin-bottom:6px}
+.offer .btn{background:#fff;color:var(--accent);padding:4px 10px;font-size:12px}
+.coin{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#ffd24d;color:#6b4a00;font-size:11px;font-weight:800;margin-right:2px}
+.earn{float:right;font-size:11px;font-weight:700;color:#ffe08a}
+.reco .why{font-size:10.5px;opacity:.85;margin-top:8px}
+.tx{display:flex;justify-content:space-between;font-size:12.5px;padding:8px 2px;border-bottom:1px solid var(--line)}
+.tx em{font-style:normal;color:var(--muted)}
+.toast{font-size:12px;background:var(--card);border-radius:10px;padding:8px 10px;color:var(--muted)}
+.hint{text-align:center;font-size:12px;color:var(--muted);margin-top:8px}
+.status{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.hello{font-weight:600}
+.bal{background:var(--card);border-radius:14px;padding:12px}
+.bal b{font-size:22px;display:block}
+.card{background:var(--card);border-radius:14px;padding:12px;border-left:4px solid var(--accent);animation:pop .35s ease}
+.card.push{border-left-color:var(--warn)} .card.care{border-left-color:var(--ok)}
+@keyframes pop{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+.card h3{margin:0 0 4px;font-size:15px}
+.card p{margin:0 0 10px;font-size:13px}
+.ch{font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.btns{display:flex;gap:6px;flex-wrap:wrap}
+.btn{border:0;border-radius:9px;padding:7px 11px;font:inherit;font-size:13px;cursor:pointer;background:var(--accent);color:#fff}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+details{margin-top:8px;font-size:12px;color:var(--muted)}
+details summary{cursor:pointer;color:var(--accent)}
+details ul{padding-left:16px;margin:6px 0}
+.acts{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.act{display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:12.5px;padding:6px 8px;border-radius:9px;background:var(--screen)}
+.btn.sm{padding:4px 9px;font-size:12px;flex-shrink:0;min-width:42px}
+.adv{position:relative;margin:4px 0 10px;padding:12px;border-radius:14px;background:linear-gradient(135deg,#1fa37a,#138a8a);color:#fff;box-shadow:0 6px 18px rgba(19,138,138,.35);animation:advIn .5s ease, advGlow 2.4s ease-in-out .6s infinite}
+.card.care .adv{background:linear-gradient(135deg,#1fa37a,#138a8a);box-shadow:0 6px 18px rgba(19,138,138,.35)}
+@keyframes advIn{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}
+@keyframes advGlow{0%,100%{box-shadow:0 6px 18px rgba(19,138,138,.25)}50%{box-shadow:0 6px 26px rgba(19,138,138,.45)}}
+.adv-h{display:flex;gap:10px;align-items:center}
+.avatar{position:relative;flex-shrink:0;width:42px;height:42px;border-radius:50%;background:#fff;color:#138a8a;display:grid;place-items:center;font-weight:800;font-size:14px}
+.card.care .avatar{color:#138a8a}
+.avatar::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(255,255,255,.8);animation:ring 1.8s ease-out infinite}
+@keyframes ring{from{transform:scale(.9);opacity:1}to{transform:scale(1.35);opacity:0}}
+.avatar i{position:absolute;right:0;bottom:1px;width:11px;height:11px;border-radius:50%;background:#35d07f;border:2px solid #fff}
+.adv b{display:block;font-size:14.5px}
+.adv small{display:block;font-size:11.5px;opacity:.92}
+.adv .topic{font-size:12.5px;margin:9px 0 8px;background:rgba(255,255,255,.18);border-radius:9px;padding:6px 8px}
+.slots{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.slot{border:1px solid rgba(255,255,255,.7);background:transparent;color:#fff;border-radius:999px;padding:3px 9px;font:inherit;font-size:11.5px;cursor:pointer}
+.slot.on{background:#fff;color:#138a8a;font-weight:700}
+.card.care .slot.on{color:#138a8a}
+.adv .go{width:100%;border:0;border-radius:10px;padding:9px;font:inherit;font-weight:700;font-size:13.5px;background:#fff;color:#138a8a;cursor:pointer}
+.card.care .adv .go{color:#138a8a}
+.adv .done{text-align:center;font-weight:700;font-size:13px;background:rgba(255,255,255,.2);border-radius:10px;padding:9px}
+.ext{margin-top:10px}.extl{display:flex;flex-wrap:wrap;gap:5px}.extl span{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:2px 8px;color:var(--muted)}
+.life{display:flex;justify-content:space-between;align-items:center;width:100%;border:1px dashed var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:9px 12px;font:inherit;font-size:12.5px;cursor:pointer;text-align:left}
+.card .life{border:0;padding:0;background:none}
+.life span:last-child{color:var(--accent);font-weight:700}
+.tips{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.tip{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:var(--accent-soft)}
+.tip b{display:block;font-size:12.5px}.tip small{display:block;font-size:11.5px;color:var(--muted)}
+.tip .btn{text-decoration:none;flex-shrink:0}
+.banner{font-size:12px;background:var(--stop-soft);color:var(--stop);border-radius:10px;padding:6px 10px}
+/* dashboard */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi b{display:block;font-size:24px}
+.kpi span{color:var(--muted);font-size:13px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+.hb{display:grid;grid-template-columns:130px 1fr 60px;align-items:center;gap:8px;margin:7px 0;font-size:13px}
+.hb div{height:12px;border-radius:6px;background:var(--accent)}
+.hb.sens div{background:var(--ok)}
+.hb em{font-style:normal;text-align:right;color:var(--muted)}
+.funnel .hb{grid-template-columns:190px 1fr 80px}
+/* how */
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+@media (max-width:860px){.flow{grid-template-columns:1fr}}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;position:relative}
+.step b{display:block;margin-bottom:4px}
+.step .n{font-size:12px;color:var(--accent);font-weight:700}
+.step p{margin:0;font-size:13px;color:var(--muted)}
+footer{max-width:1200px;margin:0 auto;padding:8px 16px 30px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Moments</h1>
+  <p class="sub">Proof of concept: the bank recognises life moments and responds at the right time, through the right channel, with an explanation. All data is fictional.</p>
+</header>
+<nav>
+  <button class="on" data-tab="klant">Customer view</button>
+  <button data-tab="schaal">Scale dashboard</button>
+  <button data-tab="hoe">How it works</button>
+</nav>
+<main>
+  <!-- CUSTOMER -->
+  <section class="tab on" id="klant">
+    <div class="panel">
+      <div class="persona">
+        <div><h2 style="margin:0">Fictional customer</h2><div style="font-weight:600">Lotte Peeters</div></div>
+        <div class="age" id="ageLbl">22 <small>years</small></div>
+      </div>
+      <div class="tl-wrap"><div class="tl" id="tl"><input type="range" id="age" min="22" max="67" step="1" value="22" aria-label="Age"></div></div>
+    </div>
+    <div class="grid">
+      <div>
+        <div class="panel"><h2>1 · Signals</h2><div id="signals"></div></div>
+        <div class="panel" style="margin-top:14px"><h2>Customer consent</h2><div id="consent"></div>
+          <p class="w" style="margin:8px 0 0">Switch off a source and watch the engine become more cautious.</p></div>
+      </div>
+      <div class="panel"><h2>2 · Engine</h2><div id="engine"></div></div>
+      <div><h2 style="text-align:center">3 · What the customer sees</h2><div class="phone"><div class="screen" id="screen"></div></div><p class="hint">Tap the Kate Coins bar to open the recommendations</p></div>
+    </div>
+  </section>
+
+  <!-- SCALE -->
+  <section class="tab" id="schaal">
+    <div class="kpis">
+      <div class="panel kpi"><b>2,300,000</b><span>customers scanned this week</span></div>
+      <div class="panel kpi"><b>11,870</b><span>moments above the threshold</span></div>
+      <div class="panel kpi"><b>0.5%</b><span>of customers triggered an LLM call</span></div>
+      <div class="panel kpi"><b>2,430</b><span>actions deliberately not sent</span></div>
+    </div>
+    <div class="two">
+      <div class="panel"><h2>Moments detected this week</h2><div id="perMoment"></div>
+        <p class="w">Green = sensitive moment: no selling, only support and an advisor on request.</p></div>
+      <div class="panel funnel"><h2>From signal to action</h2><div id="funnel"></div>
+        <p class="w">Cheap rules and models filter first. The language model only writes the message for the customers that remain.</p></div>
+    </div>
+    <div class="panel" style="margin-top:14px"><h2>Channel mix</h2><div id="channels"></div></div>
+  </section>
+
+  <!-- HOW -->
+  <section class="tab" id="hoe">
+    <div class="flow">
+      <div class="step"><span class="n">1</span><b>Signals</b><p>Transactions, in-app behaviour, customer data and products, only within the customer's consent.</p></div>
+      <div class="step"><span class="n">2</span><b>Moment detection</b><p>Lightweight rules and models per moment produce a confidence score. Runs across millions of customers.</p></div>
+      <div class="step"><span class="n">3</span><b>Decision</b><p>≥ 45%: first ask the customer whether it's right, act only after "Yes". &lt; 45%: do nothing. Sensitive moments: never sell. When things get worse (job loss, divorce), KBC only asks an open question: "Has something changed in your life?".</p></div>
+      <div class="step"><span class="n">4</span><b>Channel &amp; timing</b><p>In-app message, push notification or an advisor, depending on the moment and the customer's preference.</p></div>
+      <div class="step"><span class="n">5</span><b>Personalisation</b><p>A language model writes the message, always with "Why am I seeing this?".</p></div>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <h2>Why this scales</h2>
+      <p style="margin:0">The expensive work (a language model) only happens for the small group of customers where a moment was detected with confidence. Detection itself is cheap and runs in batch or streaming across all customers. Adding a new moment = one new detection rule + one action template, not a new product.</p>
+    </div>
+  </section>
+</main>
+<footer>Hackathon prototype · fictional customer and synthetic figures.</footer>
+
+<script>
+const CATS = {transacties:"Transactions", app:"In-app behaviour", gegevens:"Customer data", producten:"Product info"};
+const consent = {transacties:true, app:true, gegevens:true, producten:true};
+const answers = {};
+const done = {};
+const recoHidden = {};
+let partnersOn = true;
+const BRANDS = {
+  "De Lijn":{t:"Mobility", d:"Bus and tram pass for your commute", c:30},
+  "NMBS":{t:"Mobility", d:"Train season ticket for your commute", c:40},
+  "Donkey Republic":{t:"Mobility", d:"Shared bikes for short trips", c:15},
+  "Velo":{t:"Mobility", d:"City bikes in Antwerp", c:15},
+  "Q-Park":{t:"Mobility", d:"Parking through the app", c:20},
+  "Pronuptia":{t:"Wedding", d:"Wedding dresses", c:80},
+  "Jan Maes":{t:"Wedding", d:"Suits for the big day", c:60},
+  "TUI":{t:"Travel", d:"Book your honeymoon", c:120},
+  "Brussels Airport":{t:"Travel", d:"Parking and services at the airport", c:50},
+  "Smartphoto":{t:"Photos", d:"Photo books and cards", c:25},
+  "INNO":{t:"Shopping", d:"Wedding gift list", c:50},
+  "IKEA":{t:"Home", d:"Furnishing your new home", c:70},
+  "Colruyt":{t:"Groceries", d:"Earn Kate Coins on your groceries", c:30},
+  "Coolblue":{t:"Electronics", d:"Appliances for your new home", c:60},
+  "Brico":{t:"DIY", d:"DIY and renovation", c:40},
+  "HUBO":{t:"DIY", d:"DIY and garden", c:40},
+  "Gamma":{t:"DIY", d:"Building and renovation supplies", c:40},
+  "Telenet":{t:"Telecom", d:"Internet and TV at your new address", c:60},
+  "Dreambaby":{t:"Baby", d:"Baby essentials", c:50},
+  "Baby's Corner":{t:"Baby", d:"Nursery furniture", c:50},
+  "Dreamland":{t:"Toys", d:"Toys and games", c:30},
+  "VDAB":{t:"Jobs", d:"Job search, training and guidance", c:0},
+  "JOBAT":{t:"Jobs", d:"Job listings", c:0},
+  "Billit":{t:"Business", d:"E-invoicing for your business", c:45},
+  "Exact":{t:"Business", d:"Accounting software", c:45},
+  "Bruneau":{t:"Office", d:"Office supplies and furniture", c:40},
+  "Wonderbox":{t:"Gifts", d:"Experience gift boxes", c:40}
+};
+const P = (name, d) => ({n:name, ...BRANDS[name], ...(d ? {d} : {})});
+const PARTNERS = {
+  job:["De Lijn","NMBS","Donkey Republic","Velo","Q-Park"].map(n => P(n)),
+  trouw:[P("Pronuptia"),P("Jan Maes"),P("TUI"),P("Brussels Airport"),P("Smartphoto","Wedding album and thank-you cards"),P("INNO")],
+  huis:["IKEA","Colruyt","Coolblue","Brico","HUBO","Gamma","Telenet"].map(n => P(n)),
+  kind:[P("Dreambaby"),P("Baby's Corner"),P("Dreamland"),P("Smartphoto","Birth announcement cards")],
+  ontslag:[P("VDAB"),P("JOBAT")],
+  zelf:[P("Billit"),P("Exact"),P("Bruneau"),P("Telenet","Business internet")],
+  pensioen:[P("Brussels Airport","Parking and services for your trips"),P("Wonderbox")],
+  geld:[],
+  scheiding:[P("IKEA","Furnishing your own place"),P("Coolblue","Appliances for your own place"),P("Brico"),P("HUBO"),P("Gamma"),P("Colruyt")]
+};
+const T = {
+  notaris:(d)=>({n:"Notaris.be", d, url:"https://www.notaris.be"}),
+  advocaat:{n:"Advocaat.be", d:"Find a family-law lawyer near you", url:"https://www.advocaat.be"},
+  caw:(d)=>({n:"CAW", d, url:"https://www.caw.be"}),
+  unizo:{n:"Unizo", d:"Advice and a network for starting entrepreneurs", url:"https://www.unizo.be"},
+  vlaio:{n:"VLAIO", d:"Grants and support for your business in Flanders", url:"https://www.vlaio.be"},
+  union:{n:"Your union", d:"Help with your dismissal, notice period and benefits"},
+  coins:{n:"Convert your Kate Coins", d:"Turn your Kate Coins into euros on your account", action:"Convert"}
+};
+const TIPS = {
+  huis:[T.notaris("Buying a home: costs, the deed and finding a notary")],
+  scheiding:[T.advocaat, T.caw("Free, confidential support during a divorce"), T.notaris("Dividing property and the family home")],
+  zelf:[T.unizo, T.vlaio, T.notaris("Setting up a company with a notary")],
+  ontslag:[T.union, T.coins, T.caw("Free support when things get tough")],
+  pensioen:[T.notaris("Gifts and inheritance explained")]
+};
+const TX = [["Colruyt","-€64.20"],["Salary","+€2,400.00"],["Proximus","-€45.00"],["Bakery De Molen","-€7.80"],
+  ["Rent / mortgage","-€850.00"],["Delhaize","-€38.15"],["NMBS","-€12.40"],["Pharmacy","-€18.90"],["Spotify","-€11.99"],["Petrol station","-€62.00"]];
+
+const MOMENTS = [
+  {id:"job", age:23, name:"First job", short:"First job",
+   signals:[
+     {t:"First fixed salary", cat:"transacties", w:.35},
+     {t:"New employer named in the transfer description", cat:"transacties", w:.2},
+     {t:"Salary much higher than before (student job)", cat:"transacties", w:.15},
+     {t:"First holiday pay and end-of-year bonus", cat:"transacties", w:.15}],
+   channel:"In-app", style:"", title:"Congrats on your first salary!",
+   body:"A good moment to get your finances set up. Pick what suits you:",
+   actions:["Build a buffer: 3 months of fixed costs",
+            "Holiday savings pot with an automatic transfer",
+            "Start pension savings (tax benefit)",
+            "Your first family liability insurance",
+            "Check your hospitalisation insurance (through your employer or not)",
+            "Budget overview"],
+   timing:"The day after the salary arrives", question:"Have you started your first job?", level:"Low: detection is fine"},
+  {id:"trouw", age:27, name:"Moving in / marriage", short:"Together",
+   signals:[
+     {t:"A second person contributes to the rent", cat:"transacties", w:.35},
+     {t:"Shared fixed costs", cat:"transacties", w:.25},
+     {t:"Deposits to a wedding venue, photographer, caterer and jeweller", cat:"transacties", w:.25}],
+   channel:"In-app", style:"", title:"Moving forward together, congrats!",
+   body:"A few things that change now. We don't decide for you, we explain:",
+   advisor:"Marital property regimes explained (joint or separate property), and an appointment with a notary",
+   actions:["A joint account, or not",
+            "Combine your insurance: family liability, fire, car",
+            "Your partner as beneficiary of your life insurance",
+            "A savings pot for the wedding",
+            "Travel insurance for the honeymoon"],
+   timing:"Only after the customer confirms", question:"Have you moved in together or are you getting married?", level:"Medium: let the customer say it"},
+  {id:"huis", age:30, name:"Buying a home", short:"Home",
+   signals:[
+     {t:"Savings grow every month", cat:"transacties", w:.2},
+     {t:"Used the home plan and simulations in the app", cat:"app", w:.3},
+     {t:"Deposit paid to a notary", cat:"transacties", w:.15},
+     {t:"Payments to a contractor or energy assessor", cat:"transacties", w:.1}],
+   channel:"In-app + advisor", style:"", title:"Ready to buy?",
+   body:"You've been saving with a goal for a while. Here's how we can help:",
+   advisor:"Mortgage simulation, discussed with your advisor",
+   actions:["Savings plan for your own contribution",
+            "Mortgage protection insurance",
+            "Fire insurance from the day of the deed",
+            "Renovation loan and grants (energy, insulation)",
+            "Moving checklist: change your address everywhere",
+            "Your budget after the purchase"],
+   timing:"On a weekday, when you open the simulator", question:"Are you planning to buy a home?", level:"Low to medium"},
+  {id:"kind", age:32, name:"Baby", short:"Baby",
+   signals:[
+     {t:"Purchases at baby shops", cat:"transacties", w:.25},
+     {t:"Payment to a hospital or maternity ward", cat:"transacties", w:.3},
+     {t:"First Groeipakket payment (child benefit)", cat:"transacties", w:.4}],
+   channel:"In-app", style:"", title:"Welcome to your little one!",
+   body:"For your child, in a few taps:",
+   actions:["Open an account in your child's name",
+            "A monthly transfer (grandparents can contribute too)",
+            "Add your child to your family liability and hospitalisation insurance",
+            "Check the beneficiary of your life insurance",
+            "Budget with the new fixed costs (childcare)",
+            "Savings plan for their studies"],
+   timing:"2 weeks after the birth, during the day", question:"Has a little one arrived?", level:"Medium"},
+  {id:"scheiding", age:36, name:"Divorce", short:"Divorce", sensitive:true, partnersOk:true, openAsk:true, privateMsg:true,
+   signals:[
+     {t:"Partner stops contributing to the joint account", cat:"transacties", w:.3},
+     {t:"Rental deposit paid for a second address", cat:"transacties", w:.25},
+     {t:"Change of address for one partner only", cat:"gegevens", w:.2},
+     {t:"Payments to a lawyer or mediator", cat:"transacties", w:.2}],
+   channel:"Advisor", style:"care", title:"Thank you for letting us know",
+   body:"This is a hard time. We'll help you with the practical side, at your own pace:",
+   advisor:"Your mortgage: who stays liable? Discuss it with your advisor",
+   actions:["Review access and powers of attorney",
+            "Split the joint account",
+            "Update the beneficiary of your life insurance",
+            "Split your insurance policies",
+            "Your children's accounts",
+            "Maintenance payment as a standing order",
+            "Rental deposit"],
+   timing:"Only after the customer confirms", level:"High: detect, but ask openly without naming it"},
+  {id:"ontslag", age:41, name:"Job loss", short:"Job loss", sensitive:true, openAsk:true,
+   signals:[
+     {t:"Salary no longer arrives", cat:"transacties", w:.4},
+     {t:"Large one-off deposit (severance pay)", cat:"transacties", w:.3},
+     {t:"First payment from a union or HVW (benefits fund)", cat:"transacties", w:.3}],
+   channel:"Advisor (on request)", style:"care", bal:"€612.40", title:"We're here for you",
+   body:"We noticed a change in your income. What might help now:",
+   advisor:"Temporarily adjust your mortgage repayments, together with your advisor",
+   actions:["Overview of your fixed costs and subscriptions",
+            "Set part of your severance pay aside for taxes",
+            "Keep an eye on your buffer"],
+   timing:"Within 24 hours, not in the evening", level:"High: gentle, no selling, ask openly"},
+  {id:"zelf", age:43, name:"Self-employed", short:"Self-employed",
+   signals:[
+     {t:"Income from several different clients", cat:"transacties", w:.3},
+     {t:"First payment to a social insurance fund", cat:"transacties", w:.25},
+     {t:"Registration at a business desk", cat:"gegevens", w:.15},
+     {t:"VAT payments", cat:"transacties", w:.2},
+     {t:"Salary and invoices side by side (side business)", cat:"transacties", w:.1}],
+   channel:"In-app", style:"", title:"Good luck with your own business!",
+   body:"What starters often arrange too late:",
+   actions:["A separate business account",
+            "Automatic pot for social contributions, VAT and taxes",
+            "Supplementary pension for the self-employed (VAPZ)",
+            "Guaranteed income insurance",
+            "Professional liability insurance",
+            "Link your accounting and e-invoicing",
+            "Car lease"],
+   timing:"After the first VAT payment", question:"Have you started your own business?", level:"Low"},
+  {id:"geld", age:52, name:"Sudden large sum", short:"Large sum", careful:true,
+   signals:[
+     {t:"Deposit of €185,000 from a notary", cat:"transacties", w:.45},
+     {t:"Amount far larger than usual on this account", cat:"transacties", w:.25},
+     {t:"Viewed 'investing' in the app", cat:"app", w:.1}],
+   channel:"In-app + advisor", style:"care", bal:"€187,431.20", title:"You received a large sum",
+   body:"No rush. First park it safely, then choose calmly:",
+   advisor:"Investment conversation based on your profile",
+   actions:["Park it safely first",
+            "Upload the proof of origin right away",
+            "The deposit guarantee explained: €100,000 per person per bank",
+            "Compare early repayment of your mortgage",
+            "Make full use of pension savings",
+            "Donate to a charity (with a tax certificate)",
+            "Fraud warning: never move money at someone else's request"],
+   timing:"After 3 weeks, not right after the deposit", question:"Have you recently received a large sum?", level:"High: no rush, always a human"},
+  {id:"pensioen", age:63, name:"Retirement", short:"Retirement",
+   signals:[
+     {t:"Last salary and first pension payment", cat:"transacties", w:.4},
+     {t:"Large group insurance payout", cat:"transacties", w:.3},
+     {t:"Different holiday pay", cat:"transacties", w:.15}],
+   channel:"In-app + advisor", style:"", title:"Welcome to your retirement",
+   body:"Calmly, at your own pace:",
+   advisor:"Investment conversation: where to put your supplementary pension",
+   actions:["Continue your employer's hospitalisation insurance individually",
+            "Park your supplementary pension safely",
+            "Gifting or estate planning with a notary",
+            "Adapting your home",
+            "Fraud protection",
+            "Belmobiel: the bank comes to your home"],
+   timing:"After the first pension payment", question:"Have you retired?", level:"Medium: always with a human involved"}
+];
+
+const $ = id => document.getElementById(id);
+const pct = a => (a-22)/(67-22)*100;
+
+// timeline markers
+MOMENTS.forEach((m,i) => {
+  const b = document.createElement("button");
+  b.className = "mk" + (i%2 ? " alt" : "");
+  b.style.left = pct(m.age) + "%";
+  b.innerHTML = `<span class="lbl">${m.short} · </span>${m.age}`;
+  b.dataset.id = m.id;
+  b.onclick = () => { $("age").value = m.age; lifeMsg = ""; render(); };
+  $("tl").appendChild(b);
+});
+
+// consent toggles
+Object.entries(CATS).forEach(([k,label]) => {
+  const row = document.createElement("label");
+  row.className = "toggle";
+  row.innerHTML = `<span>${label}</span><input type="checkbox" checked>`;
+  row.querySelector("input").onchange = e => { consent[k] = e.target.checked; render(); };
+  $("consent").appendChild(row);
+});
+{
+  const row = document.createElement("label");
+  row.className = "toggle";
+  row.style.borderTop = "1px solid var(--line)"; row.style.marginTop = "6px"; row.style.paddingTop = "10px";
+  row.innerHTML = `<span>Kate Coins recommendations</span><input type="checkbox" checked>`;
+  row.querySelector("input").onchange = e => { partnersOn = e.target.checked; render(); };
+  $("consent").appendChild(row);
+}
+
+const current = age => MOMENTS.find(m => age >= m.age && age < m.age + 2);
+const conf = m => Math.min(.99, m.signals.reduce((s,x) => s + (consent[x.cat] ? x.w : 0), 0));
+function decide(m){
+  if (m.reportOnly) return answers[m.id] === "yes" ? "act" : "report";
+  if (answers[m.id] === "no") return "dismissed";
+  if (answers[m.id] === "yes") return "act";
+  const c = conf(m);
+  if (c >= .45) return "ask";
+  return "none";
+}
+
+function recoState(m, d){
+  if (m && (m.sensitive || m.careful) && !m.partnersOk) return {show:false, why:"off: sensitive moment"};
+  if (!m || d !== "act") return {show:false, why:m && m.reportOnly ? "only after the customer reports it" : "only after the customer confirms"};
+  if (!PARTNERS[m.id] || !PARTNERS[m.id].length) return {show:false, why:"no relevant partners"};
+  if (!partnersOn) return {show:false, why:"off: customer doesn't want Kate Coins recommendations"};
+  if (recoHidden[m.id]) return {show:false, why:"dismissed by the customer", undo:true};
+  return {show:true, why:`${PARTNERS[m.id].length} partners, based on '${m.name}'`};
+}
+function recoHTML(m){
+  const ps = PARTNERS[m.id];
+  return `<div class="reco ${recoOpen[m.id] ? "l2" : ""}" id="reco">
+    <div class="reco-top"><span class="grow" id="recoGrow" title="Tap to open"><span class="coin">K</span> Kate Coins · Recommended for you <span class="cnt">${ps.length}</span> <span style="font-size:11px;opacity:.8">${recoOpen[m.id] ? "▲" : "▼"}</span></span>
+      <button class="x" id="recoX" aria-label="Dismiss" title="Not interested">×</button></div>
+    <div class="reco-body">
+      <div class="chips">${ps.map(p => `<span>${p.t}</span>`).join("")}</div>
+      <div class="offers">${ps.map(p => `<div class="offer"><b>${p.n} ${p.c ? `<span class="earn">+${p.c} Kate Coins</span>` : ""}</b><small>${p.d}</small><button class="btn">View</button></div>`).join("")}</div>
+      <div class="why">You have 340 Kate Coins. Recommended because you're in the moment '${m.name}'.</div>
+    </div></div>`;
+}
+function home(extra, bal, top){
+  return `<div class="status"><span>9:41</span><span>KBC Mobile</span></div>
+    ${top||""}
+    <div class="hello">Good afternoon, Lotte</div>
+    <div class="bal"><span class="w">Current account</span><b>${bal || "€2,431.20"}</b></div>
+    ${extra||""}
+    <div class="w" style="margin-top:6px">Recent transactions</div>
+    <div>${TX.map(t => `<div class="tx"><span>${t[0]}</span><em>${t[1]}</em></div>`).join("")}</div>`;
+}
+const recoOpen = {};
+let lifeMsg = "";
+const askOpen = {};
+const tipDone = {};
+const booked = {}, slotSel = {};
+const SLOTS = ["Today 4pm","Tomorrow 10:30am","Fri 2pm"];
+function advHTML(m, topic){
+  const sel = slotSel[m.id] ?? 0;
+  return `<div class="adv">
+    <div class="adv-h"><div class="avatar">SD<i></i></div>
+      <div><b>Sofie, your advisor</b><small>${m.sensitive || m.careful ? "Takes the time you need · free" : "Available now · free, no obligation"}</small></div></div>
+    <div class="topic">${topic}</div>
+    ${booked[m.id] ? `<div class="done">✓ Appointment booked: ${SLOTS[sel]}</div>` :
+      `<div class="slots">${SLOTS.map((t,i) => `<button class="slot ${i===sel ? "on" : ""}" data-s="${i}">${t}</button>`).join("")}</div>
+       <button class="go" id="book">Book appointment</button>`}
+  </div>`;
+}
+
+const on = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
+function render(){
+  const age = +$("age").value;
+  $("ageLbl").innerHTML = `${age} <small>years</small>`;
+  const m = current(age);
+  document.querySelectorAll(".mk").forEach(b => b.classList.toggle("on", !!m && b.dataset.id === m.id));
+
+  if (!m){
+    $("signals").innerHTML = `<p class="empty">An ordinary month: salary, groceries, fixed costs. Nothing unusual.</p>`;
+    $("engine").innerHTML = `<span class="pill p-none">No moment</span>
+      <p>The engine sees no life moment, so it does nothing. That's personalisation too: no noise.</p>`;
+    $("screen").innerHTML = home();
+    $("screen").scrollTop = 0;
+    bindLife();
+    return;
+  }
+
+  $("signals").innerHTML = m.reportOnly ? `<p class="empty">No detection. KBC deliberately doesn't act on this: only the customer can report it.</p>` + m.signals.map(s => `<div class="sig off" style="text-decoration:none"><div>${s.t}<div class="w">visible, but not used for detection</div></div><span class="tag">${CATS[s.cat]}</span></div>`).join("") : m.signals.map(s => `
+    <div class="sig ${consent[s.cat] ? "" : "off"}"><div>${s.t}<div class="w">${consent[s.cat] ? "weight " + Math.round(s.w*100) + "%" : "not used: no consent"}</div></div>
+    <span class="tag">${CATS[s.cat]}</span></div>`).join("");
+
+  const c = conf(m), d = decide(m);
+  const label = {act:["Act","p-act"], ask:["Ask first","p-ask"], none:["Do nothing","p-none"], dismissed:["Customer said no","p-none"], report:["Waiting for customer","p-none"]}[d];
+  $("engine").innerHTML = `
+    <div style="font-size:20px;font-weight:700">${m.name}</div>
+    <div class="w">${m.reportOnly ? (answers[m.id]==="yes" ? "Reported by the customer" : "Deliberately not detected") : "Confidence: " + Math.round(c*100) + "%"}${!m.reportOnly && answers[m.id]==="yes" ? " · confirmed by customer" : ""}</div>
+    <div class="bar" style="${m.reportOnly ? "display:none" : ""}"><i style="width:${c*100}%"></i>
+      <div class="th" style="left:45%"><span>threshold</span></div></div>
+    <span class="pill ${label[1]}">${label[0]}</span>
+    ${m.sensitive ? ` <span class="pill p-stop">Sensitive: selling paused</span>` : ""}${m.careful ? ` <span class="pill p-ask">Careful: no rush, no push</span>` : ""}
+    <dl>
+      <dt>Sensitivity</dt><dd>${m.level || "–"}</dd>
+      <dt>Channel</dt><dd>${d === "ask" ? "In-app (question)" : d === "act" ? m.channel : "–"}</dd>
+      <dt>Language model</dt><dd>${d === "act" ? "Yes, only to write the text" : "No: no cost"}</dd>
+      <dt>Timing</dt><dd>${d === "act" ? m.timing : "–"}</dd>
+      <dt>Kate Coins</dt><dd>${recoState(m,d).why}${recoState(m,d).undo ? ` · <a href="#" id="recoUndo">restore</a>` : ""}</dd>
+    </dl>
+    ${d === "report" ? `<div class="note">KBC never detects this and pushes nothing. The customer reports it themselves via "Has something changed in your life?", which is always available on the home screen.</div>` : ""}
+    ${d === "ask" && m.openAsk ? `<div class="note">KBC notices a change but never names it. The customer chooses what happened, or says nothing changed.</div>` : ""}
+    ${d === "ask" && !m.openAsk ? `<div class="note">Enough signals, but KBC always lets the customer confirm a life moment first. The proposal only follows after "Yes".</div>` : ""}
+    ${d === "none" ? `<div class="note">Not confident enough. Better nothing than something irrelevant.</div>` : ""}
+    ${d === "dismissed" ? `<div class="note">KBC remembers this and won't ask again. <a href="#" id="reset">Reset</a></div>` : ""}`;
+
+  let extra = "";
+  if (d === "act"){
+    const used = m.signals.filter(s => consent[s.cat]).map(s => `<li>${s.t}</li>`).join("");
+    extra = `
+      <div class="card ${m.style}">${/advisor/i.test(m.channel) ? `<div class="ch">Advisor</div>` : ""}<h3>${m.title}</h3><p>${m.body}</p>
+      ${m.advisor ? advHTML(m, m.advisor) : ""}
+      <div class="acts">${m.actions.map((a,i) => `<div class="act"><span>${a}</span><button class="btn sm" data-i="${i}">${done[m.id+i] ? "✓" : "Do it"}</button></div>`).join("")}</div>
+      ${TIPS[m.id] ? `<div class="tips"><div class="ch">Tips</div>${TIPS[m.id].map((t,i) => `<div class="tip"><div><b>${t.n}</b><small>${t.d}</small></div>${t.url ? `<a class="btn ghost sm" href="${t.url}" target="_blank" rel="noopener">Visit</a>` : t.action ? `<button class="btn ghost sm tipact" data-i="${i}">${tipDone[m.id+i] ? "✓ Done" : t.action}</button>` : ""}</div>`).join("")}</div>` : ""}
+      <div class="btns"><button class="btn ghost">Not now</button></div>
+      <details><summary>Why am I seeing this?</summary>${used ? `<ul>${used}</ul>` : "<p>Because you told us yourself.</p>"}You can change this in Settings → Personalisation.</details></div>`;
+  } else if (d === "ask" && m.openAsk){
+    extra = `<div class="card push"><button class="life" id="askToggle"><span><b>Has something changed in your life?</b></span><span>${askOpen[m.id] ? "▲" : "›"}</span></button>
+      ${askOpen[m.id] ? `<p style="margin:10px 0">You don't have to answer. If something changed, we'll adjust your accounts and insurance with you.</p>
+      <div class="btns">${[["ontslag","Job loss"],["scheiding","Divorce"]].map(([k,l]) => `<button class="btn ghost rep" data-k="${k}">${l}</button>`).join("")}<button class="btn ghost" id="no">Nothing changed</button></div>
+      ${lifeMsg ? `<p class="w" style="margin:8px 0 0">${lifeMsg}</p>` : ""}` : ""}</div>`;
+  } else if (d === "ask"){
+    extra = `<div class="card push"><div class="ch">Quick question</div><h3>${m.question || "Is this right?"}</h3>
+      <p>${m.sensitive ? "You don't have to answer. If you'd like, we'll help with the practical side." : "Then we can help you better. Your answer stays with us."}</p>
+      <div class="btns"><button class="btn" id="yes">Yes</button><button class="btn ghost" id="no">No</button></div></div>`;
+  } else if (d === "report"){
+    extra = "";
+  } else if (d === "dismissed"){
+    extra = `<div class="card"><p style="margin:0">Okay, we won't ask again.</p></div>`;
+  }
+  const y0 = $("screen").scrollTop;
+  const rs = recoState(m, d);
+  if (!rs.show && rs.undo) extra = `<div class="toast">Recommendations hidden. You'll see fewer offers like this.</div>` + extra;
+  $("screen").innerHTML = home(extra, m.bal, rs.show ? recoHTML(m) : "");
+  $("screen").scrollTop = y0;
+  bindLife();
+  on("recoX", () => { recoHidden[m.id] = true; render(); });
+  on("recoUndo", e => { e.preventDefault(); delete recoHidden[m.id]; render(); });
+  on("recoGrow", () => { recoOpen[m.id] = !recoOpen[m.id]; render(); });
+
+
+  on("book", () => { booked[m.id] = true; render(); });
+  document.querySelectorAll(".slot").forEach(b => b.onclick = () => { slotSel[m.id] = +b.dataset.s; render(); });
+  on("yes", () => { answers[m.id] = "yes"; render(); });
+  on("no",  () => { answers[m.id] = "no"; render(); });
+  on("reset", e => { e.preventDefault(); delete answers[m.id]; render(); });
+  document.querySelectorAll(".tipact").forEach(b => b.onclick = () => { const k = m.id + b.dataset.i; tipDone[k] = !tipDone[k]; render(); });
+  document.querySelectorAll(".act .btn").forEach(b => b.onclick = () => { const k = m.id + b.dataset.i; done[k] = !done[k]; render(); });
+}
+$("age").oninput = render;
+function bindLife(){
+  const m = current(+$("age").value);
+  on("askToggle", () => { askOpen[m.id] = !askOpen[m.id]; render(); });
+  document.querySelectorAll(".rep").forEach(b => b.onclick = () => {
+    if (m && b.dataset.k === m.id){ answers[m.id] = "yes"; lifeMsg = ""; render(); }
+    else { lifeMsg = "In this demo, pick the option that matches this moment."; render(); }
+  });
+}
+
+// dashboard (synthetic figures)
+function bars(el, rows, max){
+  el.innerHTML = rows.map(r => `<div class="hb ${r.sens ? "sens" : ""}"><span>${r.l}</span>
+    <div style="width:${Math.max(2, r.v/max*100)}%"></div><em>${r.v.toLocaleString("en-GB")}</em></div>`).join("");
+}
+bars($("perMoment"), [
+  {l:"First job", v:1840}, {l:"Moving in / marriage", v:2210}, {l:"Buying a home", v:3120}, {l:"Baby", v:1290},
+  {l:"Self-employed", v:640}, {l:"Retirement", v:2450}, {l:"Sudden large sum", v:430, sens:true},
+  {l:"Job loss", v:860, sens:true}, {l:"Divorce", v:310, sens:true}], 3120);
+bars($("funnel"), [
+  {l:"Candidate moments", v:18400}, {l:"Above threshold", v:11870},
+  {l:"Asked the customer first", v:4100}, {l:"Deliberately not sent", v:2430}], 18400);
+bars($("channels"), [
+  {l:"In-app", v:6400}, {l:"Push notification", v:3550}, {l:"Advisor", v:1920}], 6400);
+
+// tabs
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.id === b.dataset.tab));
+});
+render();
+</script>
+</body>
+</html>
